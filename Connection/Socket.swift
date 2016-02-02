@@ -33,7 +33,7 @@ public class Socket: Hashable {
         set {
             var flags = fcntl(descriptor, F_GETFD, 0)
             
-            flags = newValue ? (flags ^ FD_CLOEXEC) : (flags | FD_CLOEXEC)
+            flags = newValue ? (flags & ~FD_CLOEXEC) : (flags | FD_CLOEXEC)
             
             let _ = fcntl(descriptor, F_SETFD, flags)
         }
@@ -47,7 +47,7 @@ public class Socket: Hashable {
         
         var buffer:Int32 = 1
         guard SocketFunctions.Option(descriptor, SOL_SOCKET, SO_REUSEADDR, &buffer, socklen_t(sizeof(Int32))) != -1 else {
-            throw SocketError(function:"Socket.Option()")
+            throw SocketError(function:"SocketFunctions.Option()")
         }
     }
     
@@ -111,7 +111,9 @@ public class Socket: Hashable {
     }
     
     public func close() {
+        shutdown()
         SocketFunctions.Close(descriptor)
+
     }
     
     public func shutdown() {
